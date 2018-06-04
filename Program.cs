@@ -59,7 +59,7 @@ namespace TeleprompterConsole
                 Console.Write(word);
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    await Task.Delay(201);
+                    await Task.Delay(200);
                 }
             }
         }
