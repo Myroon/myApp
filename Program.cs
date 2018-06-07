@@ -9,21 +9,17 @@ namespace TeleprompterConsole
     {
         static void Main(string[] args)
         {
-            var lines = ReadFrom("sampleQuotes.txt");
-            Console.WriteLine("Hello World!");
-            foreach (var line in lines)
-            {
-                // Console.WriteLine(line);
-                Console.Write(line);
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    var pause = Task.Delay(200);
-                    // Synchronously waiting on a task is an
-                    // anti-pattern. This will get fixed in later
-                    // steps.
-                    pause.Wait();
-                }
-            }
+
+            RunTeleprompter().Wait();
+        }
+
+        private static async Task RunTeleprompter()
+        {
+            var config = new TeleprompterConfig();
+            var displayTask = ShowTeleprompter(config);
+
+            var speedTask = GetInput(config);
+            await Task.WhenAny(displayTask, speedTask);
         }
 
         static IEnumerable<string> ReadFrom(string file)
@@ -51,7 +47,7 @@ namespace TeleprompterConsole
             }
         }
 
-        private static async Task ShowTeleprompter()
+        private static async Task ShowTeleprompter(TeleprompterConfig config)
         {
             var words = ReadFrom("sampleQuotes.txt");
             foreach (var word in words)
@@ -59,14 +55,13 @@ namespace TeleprompterConsole
                 Console.Write(word);
                 if (!string.IsNullOrWhiteSpace(word))
                 {
-                    await Task.Delay(200);
+                    await Task.Delay(config.DelayInMilliseconds);
                 }
             }
         }
 
-        private static async Task GetInput()
+        private static async Task GetInput(TeleprompterConfig config)
         {
-            var delay = 200;
             Action work = () =>
             {
                 do
@@ -74,11 +69,11 @@ namespace TeleprompterConsole
                     var key = Console.ReadKey(true);
                     if (key.KeyChar == '>')
                     {
-                        delay -= 10; 
+                        config.UpdateDelay(-10); 
                     }
                     else if (key.KeyChar == '<')
                     {
-                        delay += 10;
+                        config.UpdateDelay(10);
                     }
                 } while (true);
             };
